@@ -1,0 +1,64 @@
+
+.block {
+    position: relative;
+    width: 600px;
+    border: 1px solid gray;
+}
+
+.log {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.send {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.form {
+    display: flex;
+    flex-direction: row;
+}
+
+.text {
+    width: 70%;
+}
+
+.geolocation {
+    margin-top: 10px;
+}
+
+.important {
+    position: absolute;
+    z-index: 1;
+    width: 300px;
+    height: 200px;
+    border: 1px solid gray;
+    background-color: white;
+}
+
+.message {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.print {
+    margin: 10px;
+    width: 80%;
+}
+
+.btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid gray;
+    border-radius: 15px;    
+    background-color: white;
+    margin: 10px 10px 10px 0px;
+}
