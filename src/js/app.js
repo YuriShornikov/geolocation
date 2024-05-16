@@ -1,5 +1,6 @@
 import { validateCoordinates } from './validate';
 
+console.log('go')
 const inp = document.querySelector('.print');
 const log = document.querySelector('.log');
 const btnContainer = document.querySelector('.btn-container');
