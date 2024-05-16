@@ -37,10 +37,39 @@
 .important {
     position: absolute;
     z-index: 1;
-    width: 300px;
-    height: 200px;
+    left: 100px;
+    display: flex;
+    flex-direction: column;
+    width: 400px;
     border: 1px solid gray;
     background-color: white;
+}
+
+.text-imp {
+    margin: 10px;
+}
+
+.btn-block {
+    margin: 5px 10px 5px 290px;
+}
+
+.print-imp {
+    margin: 0 10px;
+}
+
+.cancel {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid gray;
+    height: 40px;
+}
+
+.agreed {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid gray;
+    height: 40px;
+    
 }
 
 .message {
@@ -50,8 +79,10 @@
 }
 
 .print {
+    display: flex;
+    flex-direction: column;
     margin: 10px;
-    width: 80%;
+    width: 70%;
 }
 
 .btn {
