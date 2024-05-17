@@ -1,9 +1,11 @@
 import { validateCoordinates } from './validate';
+import { geolocation } from './geolocation';
+import { createMessage } from './createMessage';
 
-console.log('go')
 const inp = document.querySelector('.print');
 const log = document.querySelector('.log');
 const btnContainer = document.querySelector('.btn-container');
+const message = document.querySelector('.message');
 
 let savedLatitude = null;
 let savedLongitude = null;
@@ -11,11 +13,14 @@ let savedLongitude = null;
 inp.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
     event.preventDefault();
+    const inpText = inp.value.toString();
+    
 
     if (savedLatitude !== null && savedLongitude !== null) {
 
       // Если координаты уже сохранены, используйте их
-      createMessage(savedLatitude, savedLongitude);
+      createMessage(savedLatitude, savedLongitude, inpText);
+      inp.value = '';
     } else {
 
       // Получение координат
@@ -23,7 +28,8 @@ inp.addEventListener('keydown', (event) => {
         (coords) => {
           savedLatitude = coords.latitude;
           savedLongitude = coords.longitude;
-          createMessage(coords.latitude, coords.longitude);
+          createMessage(coords.latitude, coords.longitude, inpText);
+          inp.value = '';
         },
         () => {
 
@@ -62,7 +68,9 @@ inp.addEventListener('keydown', (event) => {
                   
               savedLatitude = latitude;
               savedLongitude = longitude;
-              createMessage(latitude, longitude);
+              createMessage(latitude, longitude, inp.value);
+              inp.value = '';
+
               important.remove();
             } catch(error) {
               alert(error.message);
@@ -79,60 +87,17 @@ inp.addEventListener('keydown', (event) => {
   }
 });
 
-function geolocation(successCallback, errorCallback) {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function (data) {
-        const { latitude, longitude } = data.coords;
-        successCallback({ latitude, longitude });
-      },
-      function (err) {
-        errorCallback();
-        console.log(err);
-      },
-      { enableHighAccuracy: true }
-    );
-  } else {
-    errorCallback();
-  }
-}
 
-function createMessage(latitude, longitude) {
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleString();
 
-  // Создаем новые элементы разметки
-  const sendDiv = document.createElement('div');
-  sendDiv.className = 'send';
-
-  const formDiv = document.createElement('div');
-  formDiv.className = 'form';
-
-  const textDiv = document.createElement('div');
-  textDiv.className = 'text';
-  textDiv.textContent = inp.value;
-
-  const dateDiv = document.createElement('div');
-  dateDiv.className = 'date';
-  dateDiv.textContent = formattedDate;
-
-  const geoDiv = document.createElement('div');
-  geoDiv.className = 'geolocation';
-  geoDiv.textContent = `${latitude}, ${longitude}`;
-
-  // Собираем разметку
-  formDiv.appendChild(textDiv);
-  formDiv.appendChild(dateDiv);
-  sendDiv.appendChild(formDiv);
-  sendDiv.appendChild(geoDiv);
-
-  // Добавляем новую разметку в начало блока log
-  log.insertBefore(sendDiv, log.firstChild);
-
-  inp.value = '';
-}
 
 const btnMicro = document.querySelector('.btn.microphon');
+
+let mediaRecorder;
+let audioChunks = [];
+let timerInterval;
+let startTime;
+let recordingCancelled = false;
+
 
 btnMicro.addEventListener('click', async () => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -140,25 +105,102 @@ btnMicro.addEventListener('click', async () => {
     return;
   }
 
+  if (savedLatitude !== null && savedLongitude !== null) {
+    // Если координаты уже сохранены, начинаем запись
+    startAudioRecording();
+  } else {
+    // Получение координат перед началом записи
+    geolocation(
+      (coords) => {
+        savedLatitude = coords.latitude;
+        savedLongitude = coords.longitude;
+        startAudioRecording();
+      },
+      () => {
+        // Обработка отсутствия геоданных
+        alert('Геолокация недоступна. Пожалуйста, введите координаты вручную.');
+      }
+    );
+  }
+});
+
+async function startAudioRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const audio = document.createElement('div');
-    audio.className = 'audio';
-    const btnAgreed = document.createElement('button');
-    btnAgreed.className = 'btn';
-    const timer = document.createElement('div');
-    timer.className = 'timer';
-    const btnCancel = document.createElement('button');
-    btnCancel.className = 'btn';
-    btnContainer.style.display = 'none';
+    mediaRecorder = new MediaRecorder(stream);
 
-    inp.appendChild(audio);
-    audio.appendChild(btnAgreed);
-    audio.appendChild(timer);
-    audio.appendChild(btnCancel);
+    mediaRecorder.ondataavailable = (event) => {
+      if (!recordingCancelled) {
+        audioChunks.push(event.data);
+      }
+    }
+    
+    mediaRecorder.onstop = async () => {
+      if (!recordingCancelled) {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioElement = document.createElement('audio');
+        audioElement.controls = true;
+        audioElement.src = audioUrl;
 
-    // startRecording();
+        console.log(audioElement)
+        
+        createMessage(savedLatitude, savedLongitude, audioElement);
+      } else {
+      audioChunks = [];
+      }
+    }
+
+    startRecording(savedLatitude, savedLongitude);
   } catch(error) {
     alert('Доступ к микрофону не предоставлен или API записи аудио недоступно.');
   }
-})
+}
+
+function startRecording() {
+  recordingCancelled = false;
+  mediaRecorder.start();
+  audioChunks = [];
+  btnContainer.style.display = 'none';
+
+  const audioControls = document.createElement('div');
+  audioControls.className = 'audio-controls';
+
+  const btnAgreed = document.createElement('button');
+  btnAgreed.className = 'btn';
+  btnAgreed.textContent = '\u2714';
+
+  const timer = document.createElement('div');
+  timer.className = 'timer';
+  timer.textContent = '00:00';
+
+  const btnCancel = document.createElement('button');
+  btnCancel.className = 'btn';
+  btnCancel.textContent = '\u2716';
+
+  audioControls.appendChild(btnAgreed);
+  audioControls.appendChild(timer);
+  audioControls.appendChild(btnCancel);
+  message.appendChild(audioControls);
+
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+    const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
+    const seconds = String(elapsedTime % 60).padStart(2, '0');
+    timer.textContent = `${minutes}:${seconds}`;
+  }, 1000);
+
+  btnAgreed.addEventListener('click', () => stopRecording(false));
+
+  btnCancel.addEventListener('click', () => stopRecording(true));
+}
+
+function stopRecording(cancelled) {
+  clearInterval(timerInterval);
+  recordingCancelled = cancelled;
+  mediaRecorder.stop();
+  const audioControls = document.querySelector('.audio-controls');
+  audioControls.remove();
+  btnContainer.style.display = 'flex';
+}

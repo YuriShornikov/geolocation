@@ -93,3 +93,15 @@
     background-color: white;
     margin: 10px 10px 10px 0px;
 }
+
+audio {
+    /* display: flex;
+    flex-direction: row; */
+    width: 70%;
+}
+
+.timer {
+    align-self: center;
+    margin-right: 10px;
+}
+
