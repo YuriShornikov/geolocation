@@ -1,16 +1,16 @@
-import { validateCoordinates } from './validate';
+import { geolocationByHand } from './geolocationByHand';
 import { geolocation } from './geolocation';
 import { createMessage } from './createMessage';
 
+// 1 часть сообщения
 const inp = document.querySelector('.print');
-const log = document.querySelector('.log');
 const btnContainer = document.querySelector('.btn-container');
 const message = document.querySelector('.message');
 
 let savedLatitude = null;
 let savedLongitude = null;
 
-inp.addEventListener('keydown', (event) => {
+inp.addEventListener('keydown', async (event) => {
   if (event.key === 'Enter') {
     event.preventDefault();
     const inpText = inp.value.toString();
@@ -22,74 +22,32 @@ inp.addEventListener('keydown', (event) => {
       createMessage(savedLatitude, savedLongitude, inpText);
       inp.value = '';
     } else {
+      // Если координат еще нет
+      try {
+        const coords = await new Promise((resolve, reject) => {
 
-      // Получение координат
-      geolocation(
-        (coords) => {
-          savedLatitude = coords.latitude;
-          savedLongitude = coords.longitude;
-          createMessage(coords.latitude, coords.longitude, inpText);
-          inp.value = '';
-        },
-        () => {
-
-          // Отсутствие геоданных
-          const important = document.createElement('div');
-          important.className = 'important';
-
-          important.innerHTML = `
-            <div class="text-imp">
-              Что-то пошло не так<br>
-              К сожалению, нам не удалось определить ваше<br>
-              местоположение, пожалуйста, дайте разрешение на<br>
-              использование геолокации, либо введите координаты<br>
-              вручную.<br><br>
-              Широта и долгота через запятую</div>
-            <input type="text" class="print-imp">
-            <div class="btn-block">
-              <button class="cancel">Отмена</button>
-              <button class="agreed">ОК</button>
-            </div>
-          `;
-
-          log.insertBefore(important, log.firstChild);
-
-          const cancel = document.querySelector('.cancel');
-          const agreed = document.querySelector('.agreed');
-          const inpImp = document.querySelector('.print-imp');
-
-          cancel.addEventListener('click', () => {
-            important.remove();
-          });
-
-          agreed.addEventListener('click', () => {
-            try {
-              const { latitude, longitude } = validateCoordinates(inpImp.value);
-                  
-              savedLatitude = latitude;
-              savedLongitude = longitude;
-              createMessage(latitude, longitude, inp.value);
-              inp.value = '';
-
-              important.remove();
-            } catch(error) {
-              alert(error.message);
-              inpImp.classList.add('invalid');
-            }
-          });
-
-          inpImp.addEventListener('input', () => {
-            inpImp.classList.remove('invalid');
-          });
-        }
-      );
+          // Получение координат
+          geolocation(
+            (coords) => resolve(coords),
+            () => reject()
+          );
+        });
+        savedLatitude = coords.latitude;
+        savedLongitude = coords.longitude;
+        createMessage(coords.latitude, coords.longitude, inpText);
+        inp.value = '';
+      } catch {
+        const { latitude, longitude } = await geolocationByHand(savedLatitude, savedLongitude);
+        savedLatitude = latitude;
+        savedLongitude = longitude;
+        createMessage(latitude, longitude, inpText);
+        inp.value = '';
+      }
     }
   }
 });
 
-
-
-
+// 2 часть с микрофоном
 const btnMicro = document.querySelector('.btn.microphon');
 
 let mediaRecorder;
@@ -110,18 +68,24 @@ btnMicro.addEventListener('click', async () => {
     startAudioRecording();
   } else {
     // Получение координат перед началом записи
-    geolocation(
-      (coords) => {
-        savedLatitude = coords.latitude;
-        savedLongitude = coords.longitude;
-        startAudioRecording();
-      },
-      () => {
-        // Обработка отсутствия геоданных
-        alert('Геолокация недоступна. Пожалуйста, введите координаты вручную.');
-      }
-    );
+    try {
+      const coords = await new Promise((resolve, reject) => {
+
+        // Получение координат
+        geolocation(
+          (coords) => resolve(coords),
+          () => reject()
+        );
+      });
+      savedLatitude = coords.latitude;
+      savedLongitude = coords.longitude;
+    } catch {
+      const { latitude, longitude } = await geolocationByHand(savedLatitude, savedLongitude);
+      savedLatitude = latitude;
+      savedLongitude = longitude;
+    }
   }
+  startAudioRecording();
 });
 
 async function startAudioRecording() {
@@ -157,7 +121,13 @@ async function startAudioRecording() {
   }
 }
 
+// Создаем отображение кнопок и таймера
 function startRecording() {
+
+  const existingAudioControls = document.querySelector('.audio-controls');
+  if (existingAudioControls) {
+    existingAudioControls.remove();
+  }
   recordingCancelled = false;
   mediaRecorder.start();
   audioChunks = [];
@@ -196,6 +166,7 @@ function startRecording() {
   btnCancel.addEventListener('click', () => stopRecording(true));
 }
 
+// Остановка записи
 function stopRecording(cancelled) {
   clearInterval(timerInterval);
   recordingCancelled = cancelled;

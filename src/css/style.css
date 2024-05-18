@@ -95,13 +95,16 @@
 }
 
 audio {
-    /* display: flex;
-    flex-direction: row; */
     width: 70%;
 }
 
 .timer {
     align-self: center;
     margin-right: 10px;
+}
+
+.audio-controls {
+    display: flex;
+    flex-direction: row;
 }
 
