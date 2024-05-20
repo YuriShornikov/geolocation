@@ -1,12 +1,21 @@
 {
-  "plugins": ["prettier"],
-  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+  "parser": "@babel/eslint-parser",
+  "plugins": ["prettier", "jest"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended",
+    "plugin:jest/recommended"
+  ],
   "env": {
     "es6": true,
     "browser": true,
     "jest/globals": true
   },
   "parserOptions": {
+    "requireConfigFile": false,
+    "babelOptions": {
+      "presets": ["@babel/preset-env"]
+    },
     "sourceType": "module"
   },
   "rules": {
@@ -15,9 +24,9 @@
   "overrides": [
     {
       "files": ["**/*.test.js"],
-      "plugins": ["jest"],
-      "extends": ["plugin:jest/recommended"],
-      "rules": { "jest/prefer-expect-assertions": "off" }
+      "rules": {
+        "jest/prefer-expect-assertions": "off"
+      }
     }
   ]
 }
