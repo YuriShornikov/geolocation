@@ -1,4 +1,3 @@
-import { createMessage } from '../js/createMessage';
 import { validateCoordinates } from './validate';
 
 function geolocationByHand(savedLatitude, savedLongitude) {
