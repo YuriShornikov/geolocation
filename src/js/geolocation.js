@@ -9,7 +9,7 @@ function geolocation(successCallback, errorCallback) {
         errorCallback();
         console.log(err);
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     );
   } else {
     errorCallback();

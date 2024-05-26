@@ -1,5 +1,5 @@
 function validateCoordinates(inputValue) {
-  const manualCoords = inputValue.split(',');
+  const manualCoords = inputValue.split(",");
   if (manualCoords.length !== 2) {
     throw new Error('Введите данные в формате "широта, долгота".');
   }
@@ -8,7 +8,7 @@ function validateCoordinates(inputValue) {
   const longitude = parseFloat(manualCoords[1].trim());
 
   if (isNaN(latitude) || isNaN(longitude)) {
-    throw new Error('Введите корректные координаты.');
+    throw new Error("Введите корректные координаты.");
   }
 
   return { latitude, longitude };

@@ -2,9 +2,9 @@ import { validateCoordinates } from './validate';
 
 function geolocationByHand(savedLatitude, savedLongitude) {
   // Отсутствие геоданных
-  const log = document.querySelector('.log')
-  const important = document.createElement('div');
-  important.className = 'important';
+  const log = document.querySelector(".log");
+  const important = document.createElement("div");
+  important.className = "important";
 
   important.innerHTML = `
     <div class="text-imp">
@@ -23,59 +23,32 @@ function geolocationByHand(savedLatitude, savedLongitude) {
 
   log.insertBefore(important, log.firstChild);
 
-  const cancel = document.querySelector('.cancel');
-  const agreed = document.querySelector('.agreed');
-  const inpImp = document.querySelector('.print-imp');
+  const cancel = document.querySelector(".cancel");
+  const agreed = document.querySelector(".agreed");
+  const inpImp = document.querySelector(".print-imp");
 
   return new Promise((resolve, reject) => {
-    cancel.addEventListener('click', () => {
+    cancel.addEventListener("click", () => {
       important.remove();
       reject({ latitude: savedLatitude, longitude: savedLongitude });
     });
 
-    agreed.addEventListener('click', () => {
+    agreed.addEventListener("click", () => {
       try {
         const { latitude, longitude } = validateCoordinates(inpImp.value);
-              
+
         important.remove();
         resolve({ latitude, longitude });
-      } catch(error) {
+      } catch (error) {
         alert(error.message);
-        inpImp.classList.add('invalid');
+        inpImp.classList.add("invalid");
       }
     });
 
-    inpImp.addEventListener('input', () => {
-      inpImp.classList.remove('invalid');
+    inpImp.addEventListener("input", () => {
+      inpImp.classList.remove("invalid");
     });
   });
 }
-
-//   cancel.addEventListener('click', () => {
-//     important.remove();
-//   });
-
-//   agreed.addEventListener('click', () => {
-//     try {
-//       const { latitude, longitude } = validateCoordinates(inpImp.value);
-            
-//       savedLatitude = latitude;
-//       savedLongitude = longitude;
-//       createMessage(latitude, longitude, inp.value);
-//       inp.value = '';
-
-//       important.remove();
-//     } catch(error) {
-//       alert(error.message);
-//       inpImp.classList.add('invalid');
-//     }
-//   });
-
-//   inpImp.addEventListener('input', () => {
-//     inpImp.classList.remove('invalid');
-//   });
-
-//   return savedLatitude, savedLongitude;
-// }
 
 export { geolocationByHand };

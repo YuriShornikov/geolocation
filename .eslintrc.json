@@ -1,0 +1,32 @@
+{
+  "parser": "@babel/eslint-parser",
+  "plugins": ["prettier", "jest"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended",
+    "plugin:jest/recommended"
+  ],
+  "env": {
+    "es6": true,
+    "browser": true,
+    "jest/globals": true
+  },
+  "parserOptions": {
+    "requireConfigFile": false,
+    "babelOptions": {
+      "presets": ["@babel/preset-env"]
+    },
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.js"],
+      "rules": {
+        "jest/prefer-expect-assertions": "off"
+      }
+    }
+  ]
+}

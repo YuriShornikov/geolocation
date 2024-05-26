@@ -1,54 +1,54 @@
-import { geolocationByHand } from './geolocationByHand';
-import { geolocation } from './geolocation';
-import { createMessage } from './createMessage';
+import { geolocationByHand } from "./geolocationByHand";
+import { geolocation } from "./geolocation";
+import { createMessage } from "./createMessage";
 
 // 1 часть сообщения
-const inp = document.querySelector('.print');
-const btnContainer = document.querySelector('.btn-container');
-const message = document.querySelector('.message');
+const inp = document.querySelector(".print");
+const btnContainer = document.querySelector(".btn-container");
+const message = document.querySelector(".message");
 
 let savedLatitude = null;
 let savedLongitude = null;
 
-inp.addEventListener('keydown', async (event) => {
-  if (event.key === 'Enter') {
+inp.addEventListener("keydown", async (event) => {
+  if (event.key === "Enter") {
     event.preventDefault();
     const inpText = inp.value.toString();
-    
 
     if (savedLatitude !== null && savedLongitude !== null) {
-
       // Если координаты уже сохранены, используйте их
       createMessage(savedLatitude, savedLongitude, inpText);
-      inp.value = '';
+      inp.value = "";
     } else {
       // Если координат еще нет
       try {
         const coords = await new Promise((resolve, reject) => {
-
           // Получение координат
           geolocation(
             (coords) => resolve(coords),
-            () => reject()
+            () => reject(),
           );
         });
         savedLatitude = coords.latitude;
         savedLongitude = coords.longitude;
         createMessage(coords.latitude, coords.longitude, inpText);
-        inp.value = '';
+        inp.value = "";
       } catch {
-        const { latitude, longitude } = await geolocationByHand(savedLatitude, savedLongitude);
+        const { latitude, longitude } = await geolocationByHand(
+          savedLatitude,
+          savedLongitude,
+        );
         savedLatitude = latitude;
         savedLongitude = longitude;
         createMessage(latitude, longitude, inpText);
-        inp.value = '';
+        inp.value = "";
       }
     }
   }
 });
 
 // 2 часть с микрофоном
-const btnMicro = document.querySelector('.btn.microphon');
+const btnMicro = document.querySelector(".btn.microphon");
 
 let mediaRecorder;
 let audioChunks = [];
@@ -56,10 +56,9 @@ let timerInterval;
 let startTime;
 let recordingCancelled = false;
 
-
-btnMicro.addEventListener('click', async () => {
+btnMicro.addEventListener("click", async () => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('API записи аудио недоступно в вашем браузере.');
+    alert("API записи аудио недоступно в вашем браузере.");
     return;
   }
 
@@ -70,17 +69,19 @@ btnMicro.addEventListener('click', async () => {
     // Получение координат перед началом записи
     try {
       const coords = await new Promise((resolve, reject) => {
-
         // Получение координат
         geolocation(
           (coords) => resolve(coords),
-          () => reject()
+          () => reject(),
         );
       });
       savedLatitude = coords.latitude;
       savedLongitude = coords.longitude;
     } catch {
-      const { latitude, longitude } = await geolocationByHand(savedLatitude, savedLongitude);
+      const { latitude, longitude } = await geolocationByHand(
+        savedLatitude,
+        savedLongitude,
+      );
       savedLatitude = latitude;
       savedLongitude = longitude;
     }
@@ -97,56 +98,57 @@ async function startAudioRecording() {
       if (!recordingCancelled) {
         audioChunks.push(event.data);
       }
-    }
-    
+    };
+
     mediaRecorder.onstop = async () => {
       if (!recordingCancelled) {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+        const audioBlob = new Blob(audioChunks, { type: "audio/mpeg" });
         const audioUrl = URL.createObjectURL(audioBlob);
-        const audioElement = document.createElement('audio');
+        const audioElement = document.createElement("audio");
         audioElement.controls = true;
         audioElement.src = audioUrl;
 
-        console.log(audioElement)
-        
+        console.log(audioElement);
+
         createMessage(savedLatitude, savedLongitude, audioElement);
       } else {
-      audioChunks = [];
+        audioChunks = [];
       }
-    }
+    };
 
     startRecording(savedLatitude, savedLongitude);
-  } catch(error) {
-    alert('Доступ к микрофону не предоставлен или API записи аудио недоступно.');
+  } catch (error) {
+    alert(
+      "Доступ к микрофону не предоставлен или API записи аудио недоступно.",
+    );
   }
 }
 
 // Создаем отображение кнопок и таймера
 function startRecording() {
-
-  const existingAudioControls = document.querySelector('.audio-controls');
+  const existingAudioControls = document.querySelector(".audio-controls");
   if (existingAudioControls) {
     existingAudioControls.remove();
   }
   recordingCancelled = false;
   mediaRecorder.start();
   audioChunks = [];
-  btnContainer.style.display = 'none';
+  btnContainer.style.display = "none";
 
-  const audioControls = document.createElement('div');
-  audioControls.className = 'audio-controls';
+  const audioControls = document.createElement("div");
+  audioControls.className = "audio-controls";
 
-  const btnAgreed = document.createElement('button');
-  btnAgreed.className = 'btn';
-  btnAgreed.textContent = '\u2714';
+  const btnAgreed = document.createElement("button");
+  btnAgreed.className = "btn";
+  btnAgreed.textContent = "\u2714";
 
-  const timer = document.createElement('div');
-  timer.className = 'timer';
-  timer.textContent = '00:00';
+  const timer = document.createElement("div");
+  timer.className = "timer";
+  timer.textContent = "00:00";
 
-  const btnCancel = document.createElement('button');
-  btnCancel.className = 'btn';
-  btnCancel.textContent = '\u2716';
+  const btnCancel = document.createElement("button");
+  btnCancel.className = "btn";
+  btnCancel.textContent = "\u2716";
 
   audioControls.appendChild(btnAgreed);
   audioControls.appendChild(timer);
@@ -156,14 +158,14 @@ function startRecording() {
   startTime = Date.now();
   timerInterval = setInterval(() => {
     const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-    const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, '0');
-    const seconds = String(elapsedTime % 60).padStart(2, '0');
+    const minutes = String(Math.floor(elapsedTime / 60)).padStart(2, "0");
+    const seconds = String(elapsedTime % 60).padStart(2, "0");
     timer.textContent = `${minutes}:${seconds}`;
   }, 1000);
 
-  btnAgreed.addEventListener('click', () => stopRecording(false));
+  btnAgreed.addEventListener("click", () => stopRecording(false));
 
-  btnCancel.addEventListener('click', () => stopRecording(true));
+  btnCancel.addEventListener("click", () => stopRecording(true));
 }
 
 // Остановка записи
@@ -171,7 +173,7 @@ function stopRecording(cancelled) {
   clearInterval(timerInterval);
   recordingCancelled = cancelled;
   mediaRecorder.stop();
-  const audioControls = document.querySelector('.audio-controls');
+  const audioControls = document.querySelector(".audio-controls");
   audioControls.remove();
-  btnContainer.style.display = 'flex';
+  btnContainer.style.display = "flex";
 }
