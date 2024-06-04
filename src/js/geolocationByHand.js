@@ -1,4 +1,4 @@
-import { validateCoordinates } from './validate';
+import { validateCoordinates } from "./validate";
 
 function geolocationByHand(savedLatitude, savedLongitude) {
   // Отсутствие геоданных
